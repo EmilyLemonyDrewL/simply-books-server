@@ -87,3 +87,56 @@ def get_single_author(id):
     author.books = books
 
     return author.__dict__
+
+def create_author(new_author):
+    print("new_author type:", type(new_author))
+    print("new_author content:", new_author)
+
+    if isinstance(new_author, bytes):
+        new_author = json.loads(new_author)
+
+    with sqlite3.connect("./simply.sqlite3") as conn:
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        INSERT INTO Author
+            ( email, first_name, last_name, image, favorite )
+        VALUES
+            ( ?, ?, ?, ?, ?);
+        """,  (new_author['email'], new_author['first_name'], new_author['last_name'], new_author['image'], new_author['favorite'], ))
+
+        id = db_cursor.lastrowid
+        new_author['id'] = id
+
+    return new_author
+
+def update_author(id, new_author):
+    with sqlite3.connect("./simply.sqlite3") as conn:
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        UPDATE Author
+            SET
+                email = ?
+                first_name = ?
+                last_name = ?
+                image = ?
+                favorite = ?
+        WHERE id = ?
+        """, (new_author['email'], new_author['first_name'], new_author['last_name'], new_author['image'], new_author['favorite'], id, ))
+
+        row_affected = db_cursor.rowcount
+
+    if row_affected == 0:
+        return False
+    else:
+        return
+
+def delete_author(id):
+    with sqlite3.connect("./simply.sqlite3") as conn:
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        DELETE FROM author
+        WHERE id = ?
+        """, (id, ))
