@@ -85,3 +85,57 @@ def get_single_book(id):
     book.authors = authors
 
     return book.__dict__
+
+def create_book(new_book):
+    print("new_book type:", type(new_book))
+    print("new_book content:", new_book)
+
+    # Convert new_book to dictionary if necessary
+    if isinstance(new_book, bytes):
+        new_book = json.loads(new_book)
+
+    with sqlite3.connect("./simply.sqlite3") as conn:
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        INSERT INTO Book
+            (title, image, price, sale, description)
+        VALUES
+            ( ?, ?, ?, ?, ?);
+        """, (new_book['title'], new_book['image'], new_book['price'], new_book['sale'], new_book['description'], ))
+
+        id = db_cursor.lastrowid
+        new_book['id'] = id
+
+    return new_book
+
+def update_book(id, new_book):
+    with sqlite3.connect("./simply.sqlite3") as conn:
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        UPDATE Book
+            SET
+                title = ?
+                image = ?
+                price = ?
+                sale = ?
+                description = ?
+        WHERE id = ?
+        """, (new_book['title'], new_book['image'], new_book['price'], new_book['sale'], new_book['description'], id, ))
+
+        row_affected = db_cursor.rowcount
+
+    if row_affected == 0:
+        return False
+    else:
+        return True
+
+def delete_book(id):
+    with sqlite3.connect("./simply.sqlite3") as conn:
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        DELETE FROM book
+        WHERE id = ?
+        """, (id, ))
